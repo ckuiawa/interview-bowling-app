@@ -18,7 +18,7 @@ class BowlingFrame extends Component {
 
   render() {
 
-    const { firstBallScore, secondBallScore, frameScore, tenthFrame } = this.props;
+    const { firstBallScore, secondBallScore, frameScore, tenthFrame, frameNumber } = this.props;
 
       let tenthFrameElement;
       if (tenthFrame) {
@@ -27,6 +27,7 @@ class BowlingFrame extends Component {
 
       return (
         <span className="frame">
+          <span className="frameNumber">{frameNumber}</span>
           <span className="frameScore">{frameScore}</span>
           <span className="firstBallScore">{firstBallScore}</span>
           <span className="secondBallScore">{secondBallScore}</span>

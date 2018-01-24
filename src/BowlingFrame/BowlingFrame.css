@@ -1,29 +1,38 @@
 .frame {
-  border: thin solid black;
-  height: 30px;
-  width: 50px;
+  border: thick solid black;
+  height: 50px;
+  width: 75px;
   margin: 5px;
   display: flex;
 }
 
 .frameNumber {
-  height: 50%;
+  height: 40%;
+  font-size: 35%;
+  color: gray;
+  margin-bottom: 60%;
+  padding: 0px 2px 0px 2px;
+  border: medium solid black;
+  border-left: none;
+  border-top: none;
 }
 
 .frameScore {
   height: 50%;
-
 }
 
 .firstBallScore {
   height: 50%;
-  margin-bottom: 50%;
+  width: 30%;
+  margin: 0px 0px 50% 15px;
+  border: thin solid darkgrey;
 }
 
 .secondBallScore {
   height: 50%;
+  width: 30%;
   margin-bottom: 50%;
-
+  border: thin solid darkgrey;
 }
 
 .twelfthFrameScore {

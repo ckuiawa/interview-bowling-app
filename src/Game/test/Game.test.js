@@ -16,22 +16,12 @@ describe('Game component', () => {
       const component = (
         <Game></Game>
       )
-
-
       const wrapper = mount(component);
 
       if (state) {
         wrapper.instance().setState(state);
       }
-
       return wrapper;
-
-//      frames: this.createFrames(),
-//     currentFrame: 0,
-//       currentThrow: 0,
-//       pinsLeft: 0
-
-
   }
 
 
@@ -52,7 +42,7 @@ describe('Game component', () => {
         firstThrowScore: 7,
         secondThrowScore: null,
         pinsLeft: 3,
-        frameScore: null
+        frameScore: 7
       });
 
     })
@@ -111,7 +101,7 @@ describe('Game component', () => {
         firstThrowScore: 6,
         secondThrowScore: 3,
         pinsLeft: 1,
-        frameScore: null
+        frameScore: 9
       });
 
     })
@@ -120,11 +110,10 @@ describe('Game component', () => {
 
   describe('second frame, first throw no spare/strike', () => {
     it('should register a strike', () => {
-      const game = createComponent({
-        currentFrame: 1,
-        currentThrow: 0,
-        pinsLeft: 10
-      })
+      const game = createComponent()
+
+      game.instance().scoreThrow(5);
+      game.instance().scoreThrow(3);
 
       game.instance().scoreThrow(10);
       expect(game.instance().state.currentFrame).toBe(2);
@@ -134,7 +123,7 @@ describe('Game component', () => {
         firstThrowScore: 10,
         secondThrowScore: null,
         pinsLeft: 0,
-        frameScore: null
+        frameScore: 10
       });
     })
 

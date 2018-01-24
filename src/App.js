@@ -25,20 +25,38 @@ class App extends Component {
 
     this.createGame = this.createGame.bind(this);
     this.renderNewGameButton = this.renderNewGameButton.bind(this);
+    this.enableRestart = this.enableRestart.bind(this);
+    this.newGameStarted = this.newGameStarted.bind(this);
   }
 
   createGame() {
     this.setState({
-      gameInProgress: true
+      gameInProgress: true,
+      newGameStarted: true
     });
   }
 
+  enableRestart() {
+    this.setState({
+      gameInProgress: false
+    });
+
+  }
+
+  newGameStarted() {
+    this.setState({
+      newGameStarted: false
+    });
+
+  }
+
   renderGame() {
-    if (this.state.gameInProgress) {
-      return (
-        <Game/>
-      )
-    }
+    return (
+      <Game onRestartEnabled={this.enableRestart}
+            newGame={this.state.newGameStarted}
+            onNewGame={this.newGameStarted}
+      />
+    )
   }
 
   renderNewGameButton() {

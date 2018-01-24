@@ -26,8 +26,16 @@ class Game extends Component {
       pinsLeft: 0,
       gameStillOn: true
     };
-
   }
+
+  componentWillUpdate(oldProps, newProps) {
+    if (newProps.newGameStarted) {
+      this.setState({
+        frames: this.createFrames()
+      })
+    }
+  }
+
 
   createFrames() {
 
@@ -174,6 +182,7 @@ class Game extends Component {
           frames: modifiedFrames,
           gameStillOn: false
         })
+        this.props.onRestartEnabled();
       }
     }
     else {
@@ -189,6 +198,7 @@ class Game extends Component {
           frames: modifiedFrames,
           gameStillOn: false
         })
+        this.props.onRestartEnabled();
       }
     }
   }
@@ -217,12 +227,13 @@ class Game extends Component {
                         tenthFrame={tenthFrame}
                         firstBallScore={frame.firstThrowScore}
                         secondBallScore={frame.secondThrowScore}
-                        frameScore={frame.frameScore}>
+                        frameScore={frame.frameScore}
+                        frameNumber={index + 1}
+          >
           </BowlingFrame>
         </span>
       )
     });
-
 
     return (
       <div>
@@ -235,8 +246,9 @@ class Game extends Component {
 }
 
 Game.propTypes = {
-  numberOfPlayers: PropTypes.number,
-  gameInProgress: PropTypes.bool
+  onRestartEnabled: PropTypes.func,
+  onNewGameStarted: PropTypes.func,
+  newGame: PropTypes.bool
 };
 
 
