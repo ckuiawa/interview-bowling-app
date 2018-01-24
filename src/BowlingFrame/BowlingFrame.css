@@ -1,0 +1,32 @@
+.frame {
+  border: thin solid black;
+  height: 30px;
+  width: 50px;
+  margin: 5px;
+  display: flex;
+}
+
+.frameNumber {
+  height: 50%;
+}
+
+.frameScore {
+  height: 50%;
+
+}
+
+.firstBallScore {
+  height: 50%;
+  margin-bottom: 50%;
+}
+
+.secondBallScore {
+  height: 50%;
+  margin-bottom: 50%;
+
+}
+
+.twelfthFrameScore {
+  height: 50%;
+
+}
