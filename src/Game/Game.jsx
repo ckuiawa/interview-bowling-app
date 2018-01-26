@@ -18,6 +18,9 @@ class Game extends Component {
     this.spare = this.spare.bind(this);
     this.strikeTenthFrame = this.strikeTenthFrame.bind(this);
     this.renderThrowButton = this.renderThrowButton.bind(this);
+    this.calculateCumulativeScore = this.calculateCumulativeScore.bind(this);
+    this.calculateCumulativeScoreTenthFrame = this.calculateCumulativeScoreTenthFrame.bind(this);
+    this.throwSelected = this.throwSelected.bind(this);
 
     this.state = {
       frames: this.createFrames(),
@@ -29,16 +32,15 @@ class Game extends Component {
   }
 
   componentWillUpdate(oldProps, newProps) {
-    if (newProps.newGameStarted) {
-      this.setState({
-        frames: this.createFrames()
-      })
-    }
+    // if (!oldProps.gameStarted && newProps.newGameStarted) {
+    //   this.setState({
+    //     frames: this.createFrames()
+    //   })
+    // }
   }
 
 
   createFrames() {
-
     const frames = [];
 
     let index = 0;
@@ -80,8 +82,8 @@ class Game extends Component {
   }
 
   spare(currentFrame, modifiedFrames) {
-    modifiedFrames[currentFrame].firstThrowScore = 10;
     modifiedFrames[currentFrame].pinsLeft = 0;
+    modifiedFrames[currentFrame].secondThrowScore = 10 - modifiedFrames[currentFrame].firstThrowScore;
     this.setState({
       currentThrow: 0,
       pinsLeft: 10,
@@ -120,6 +122,11 @@ class Game extends Component {
     const { currentFrame, currentThrow, pinsLeft, frames } = this.state;
     const modifiedFrames = Array.from(frames);
 
+    if (throwScore !== 0 && !throwScore) {
+      console.log("Throw score is undefined: " + throwScore);
+    }
+
+
     if (currentThrow === 0) {
       if (throwScore === 10) {
         this.strike(currentFrame, modifiedFrames);
@@ -135,7 +142,7 @@ class Game extends Component {
       }
     }
     else {
-      if (throwScore + pinsLeft === 10) {
+      if (throwScore === pinsLeft) {
         this.spare(currentFrame, modifiedFrames);
       }
       else {
@@ -149,6 +156,7 @@ class Game extends Component {
         });
       }
     }
+    this.calculateCumulativeScore();
   }
 
   scoreTenthFrame(throwScore) {
@@ -182,7 +190,9 @@ class Game extends Component {
           frames: modifiedFrames,
           gameStillOn: false
         })
-        this.props.onRestartEnabled();
+        if (this.props.onRestartEnabled) {
+          this.props.onRestartEnabled();
+        }
       }
     }
     else {
@@ -198,7 +208,120 @@ class Game extends Component {
           frames: modifiedFrames,
           gameStillOn: false
         })
-        this.props.onRestartEnabled();
+        if (this.props.onRestartEnabled) {
+          this.props.onRestartEnabled();
+        }
+      }
+    }
+    this.calculateCumulativeScoreTenthFrame();
+  }
+
+  calculateCumulativeScore() {
+    const modifiedFrames = Array.from(this.state.frames);
+
+    const score = {
+      twoThrowsPrevious: 0,
+      throwPrevious: 0,
+      previousFrameCombinedThrowScore: 0,
+      cumulativeScore: 0
+
+    }
+
+    this.state.frames.map( (frame, index) => {
+
+      if (index === 9 || (frame.firstThrowScore === null && frame.secondThrowScore === null)) {
+        // First 9 frames all score the same way.
+        // don't score 10th frame or frames that haven't started
+        return;
+      }
+
+      score.previousFrameCombinedThrowScore = score.twoThrowsPrevious + score.throwPrevious;
+
+      if (score.previousFrameCombinedThrowScore === 20) {
+        // 2 frames ago have already been updated with the strike from last frame.  So only add the second ball
+        modifiedFrames[index - 2].frameScore = modifiedFrames[index-2].frameScore + frame.firstThrowScore;
+        modifiedFrames[index - 1].frameScore = modifiedFrames[index-2].frameScore + score.throwPrevious + frame.firstThrowScore + frame.secondThrowScore;
+        score.cumulativeScore = modifiedFrames[index - 1].frameScore + frame.firstThrowScore + frame.secondThrowScore;
+      }
+      else if (score.throwPrevious === 10) {
+        modifiedFrames[index - 1].frameScore = score.cumulativeScore + frame.firstThrowScore + frame.secondThrowScore;
+        score.cumulativeScore = modifiedFrames[index - 1].frameScore + frame.firstThrowScore + frame.secondThrowScore;
+      }
+      else if (score.previousFrameCombinedThrowScore === 10) {
+        modifiedFrames[index - 1].frameScore = score.cumulativeScore + frame.firstThrowScore;
+        score.cumulativeScore = modifiedFrames[index - 1].frameScore + frame.firstThrowScore + frame.secondThrowScore;
+      }
+      else {
+        score.cumulativeScore = score.cumulativeScore + frame.firstThrowScore + frame.secondThrowScore;
+      }
+
+      modifiedFrames[index].frameScore = score.cumulativeScore;
+      this.setState({
+        frames: modifiedFrames
+      })
+
+      // Reset some variables
+      if (frame.firstThrowScore === 10) {
+        score.twoThrowsPrevious = score.throwPrevious;
+        score.throwPrevious = frame.firstThrowScore;
+      }
+      else if (frame.firstThrowScore + frame.secondThrowScore === 20) {
+        score.twoThrowsPrevious = 10;
+        score.throwPrevious = 10;
+      }
+      else if (frame.firstThrowScore + frame.secondThrowScore === 10) {
+        score.twoThrowsPrevious = frame.firstThrowScore;
+        score.throwPrevious = frame.secondThrowScore;
+      }
+      else {
+        score.twoThrowsPrevious = 0;
+        score.throwPrevious = 0;
+      }
+      return;
+    })
+  }
+
+  calculateCumulativeScoreTenthFrame() {
+
+    const modifiedFrames = Array.from(this.state.frames);
+
+    const eighthFrame = modifiedFrames[7];
+    const ninthFrame = modifiedFrames[8];
+    const tenthFrame = modifiedFrames[9];
+
+    if (eighthFrame.firstThrowScore === 10 && ninthFrame.firstThrowScore === 10 && tenthFrame.secondThrowScore === null) {
+      eighthFrame.frameScore = eighthFrame.frameScore + 10;
+      ninthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore + tenthFrame.secondThrowScore;
+      tenthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore;
+    }
+    else if (ninthFrame.firstThrowScore !== 10 && ninthFrame.firstThrowScore + ninthFrame.secondThrowScore === 10 && tenthFrame.secondThrowScore === null) {
+      ninthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore;
+      tenthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore;
+    }
+    else if (ninthFrame.firstThrowScore === 10 && tenthFrame.firstThrowScore === 10 && tenthFrame.thirdThrowScore === null) {
+      ninthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore + tenthFrame.secondThrowScore;
+      tenthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore + tenthFrame.secondThrowScore + tenthFrame.thirdThrowScore;
+    }
+    else if (tenthFrame.firstThrowScore === 10 || tenthFrame.firstThrowScore + tenthFrame.secondThrowScore === 10) {
+      tenthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore + tenthFrame.secondThrowScore + tenthFrame.thirdThrowScore;
+    }
+    else {
+      tenthFrame.frameScore = ninthFrame.frameScore + tenthFrame.firstThrowScore + tenthFrame.secondThrowScore;
+    }
+
+    this.setState({
+      frames: modifiedFrames
+    })
+  }
+
+
+  throwSelected(evt) {
+    if (evt.target.value) {
+      if (this.state.currentFrame < 9) {
+        this.scoreThrow(parseInt(evt.target.value, 10));
+      }
+      else {
+        this.scoreTenthFrame(parseInt(evt.target.value, 10));
       }
     }
   }
@@ -208,9 +331,26 @@ class Game extends Component {
 
     if (gameStillOn) {
       return (
+        <span>
         <button onClick={this.throwBall}>Throw ball</button>
+          <label>Or select pins knocked down:</label>
+        <select onSelect={this.throwSelected} onChange={this.throwSelected}>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="10">10</option>
+        </select>
+        </span>
       );
-
     }
   }
 
@@ -236,7 +376,7 @@ class Game extends Component {
     });
 
     return (
-      <div>
+      <div className="bowling-game">
         {renderedFrames}
         {this.renderThrowButton()}
       </div>
